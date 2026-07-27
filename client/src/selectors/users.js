@@ -15,7 +15,12 @@ import {
 import { isLocalId } from '../utils/local-id';
 import { isUserAdminOrProjectOwner } from '../utils/record-helpers';
 import { STATIC_USER_BY_ID } from '../constants/StaticUsers';
-import { BoardMembershipRoles, ProjectGroups, ProjectOrders } from '../constants/Enums';
+import {
+  BoardMembershipRoles,
+  ProjectGroups,
+  ProjectOrders,
+  PUBLIC_USER_ID,
+} from '../constants/Enums';
 
 const ORDER_BY_ARGS_BY_PROJECTS_ORDER = {
   [ProjectOrders.ALPHABETICALLY]: [['name', 'id.length', 'id']],
@@ -23,6 +28,10 @@ const ORDER_BY_ARGS_BY_PROJECTS_ORDER = {
 };
 
 export const selectCurrentUserId = ({ auth: { userId } }) => userId;
+
+// True while an anonymous visitor is viewing a public board. Used to suppress app chrome that
+// depends on being signed in, so the rest of the board UI can be reused verbatim.
+export const selectIsPublicView = (state) => selectCurrentUserId(state) === PUBLIC_USER_ID;
 
 export const makeSelectUserById = () =>
   createSelector(
@@ -345,6 +354,7 @@ export default {
   makeSelectUserById,
   selectUserById,
   selectCurrentUserId,
+  selectIsPublicView,
   selectUsers,
   selectActiveUsers,
   selectActiveUsersTotal,

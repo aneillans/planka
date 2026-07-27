@@ -19,6 +19,18 @@ import styles from './Fixed.module.scss';
 const Fixed = React.memo(() => {
   const { projectId } = useSelector(selectors.selectPath);
   const board = useSelector(selectors.selectCurrentBoard);
+  const isPublicView = useSelector(selectors.selectIsPublicView);
+
+  // A public visitor gets the same board chrome, minus the parts that assume an account or would
+  // navigate out of the public routes (project board tabs, favorites, home actions, promo banner).
+  if (isPublicView) {
+    return (
+      <div className={styles.wrapper}>
+        <Header />
+        {board && !board.isFetching && <BoardActions />}
+      </div>
+    );
+  }
 
   return (
     <div className={styles.wrapper}>

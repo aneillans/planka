@@ -67,11 +67,6 @@ initializeCore.fetchBootstrap = (bootstrap) => ({
   },
 });
 
-initializeCore.failPublicBoard = () => ({
-  type: ActionTypes.CORE_INITIALIZE__PUBLIC_BOARD_FAIL,
-  payload: {},
-});
-
 const toggleFavorites = (isEnabled) => ({
   type: ActionTypes.FAVORITES_TOGGLE,
   payload: {

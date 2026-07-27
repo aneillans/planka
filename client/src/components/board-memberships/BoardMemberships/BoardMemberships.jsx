@@ -22,6 +22,12 @@ const BoardMemberships = React.memo(() => {
   const boardMemberships = useSelector(selectors.selectMembershipsForCurrentBoard);
 
   const canAdd = useSelector((state) => {
+    // An anonymous public visitor has no membership, which would otherwise fall through to the
+    // "join this board" affordance below.
+    if (selectors.selectIsPublicView(state)) {
+      return false;
+    }
+
     const user = selectors.selectCurrentUser(state);
 
     if (!isUserAdminOrProjectOwner(user)) {
