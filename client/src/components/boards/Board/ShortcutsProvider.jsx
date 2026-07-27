@@ -219,7 +219,19 @@ const ShortcutsProvider = React.memo(({ children }) => {
       event.preventDefault();
 
       closePopup();
-      dispatch(push(Paths.CARDS.replace(':id', card.id)));
+
+      const publicViewPublicId = selectors.selectPublicViewPublicId(state);
+
+      dispatch(
+        push(
+          publicViewPublicId
+            ? Paths.PUBLIC_CARDS.replace(':publicId', publicViewPublicId).replace(
+                ':cardId',
+                card.id,
+              )
+            : Paths.CARDS.replace(':id', card.id),
+        ),
+      );
     };
 
     const handleCardNameEdit = (event) => {

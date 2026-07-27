@@ -33,6 +33,21 @@ export default class extends BaseModel {
     alwaysDisplayCardCreator: attr(),
     displayCardAges: attr(),
     expandTaskListsByDefault: attr(),
+    isPublic: attr({
+      getDefault: () => false,
+    }),
+    publicId: attr({
+      getDefault: () => null,
+    }),
+    publicShowMembers: attr({
+      getDefault: () => false,
+    }),
+    publicShowComments: attr({
+      getDefault: () => false,
+    }),
+    publicShowActivity: attr({
+      getDefault: () => false,
+    }),
     context: attr(),
     view: attr(),
     search: attr(),

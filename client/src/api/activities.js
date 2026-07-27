@@ -3,6 +3,7 @@
  * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
  */
 
+import http from './http';
 import socket from './socket';
 
 /* Transformers */
@@ -28,6 +29,34 @@ const getCardActivities = (cardId, data, headers) =>
     items: body.items.map(transformActivity),
   }));
 
+// Public boards are read over plain HTTP: anonymous visitors have no authenticated socket.
+const buildBeforeIdQuery = (data) =>
+  data && data.beforeId ? `?beforeId=${encodeURIComponent(data.beforeId)}` : '';
+
+const getPublicBoardActivities = (publicId, data, headers) =>
+  http
+    .get(
+      `/public-boards/${encodeURIComponent(publicId)}/actions${buildBeforeIdQuery(data)}`,
+      undefined,
+      headers,
+    )
+    .then((body) => ({
+      ...body,
+      items: body.items.map(transformActivity),
+    }));
+
+const getPublicCardActivities = (publicId, cardId, data, headers) =>
+  http
+    .get(
+      `/public-boards/${encodeURIComponent(publicId)}/cards/${cardId}/actions${buildBeforeIdQuery(data)}`,
+      undefined,
+      headers,
+    )
+    .then((body) => ({
+      ...body,
+      items: body.items.map(transformActivity),
+    }));
+
 /* Event handlers */
 
 const makeHandleActivityCreate = (next) => (body) => {
@@ -40,5 +69,7 @@ const makeHandleActivityCreate = (next) => (body) => {
 export default {
   getBoardActivities,
   getCardActivities,
+  getPublicBoardActivities,
+  getPublicCardActivities,
   makeHandleActivityCreate,
 };

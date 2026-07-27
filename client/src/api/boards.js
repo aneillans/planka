@@ -28,6 +28,18 @@ const getBoard = (id, subscribe, headers) =>
       },
     }));
 
+// Public boards are fetched over plain HTTP: anonymous visitors have no authenticated socket
+// connection, and public boards intentionally receive no realtime updates.
+const getPublicBoard = (publicId, headers) =>
+  http.get(`/public-boards/${encodeURIComponent(publicId)}`, undefined, headers).then((body) => ({
+    ...body,
+    included: {
+      ...body.included,
+      cards: body.included.cards.map(transformCard),
+      attachments: body.included.attachments.map(transformAttachment),
+    },
+  }));
+
 const updateBoard = (id, data, headers) => socket.patch(`/boards/${id}`, data, headers);
 
 const deleteBoard = (id, headers) => socket.delete(`/boards/${id}`, undefined, headers);
@@ -36,6 +48,7 @@ export default {
   createBoard,
   createBoardWithImport,
   getBoard,
+  getPublicBoard,
   updateBoard,
   deleteBoard,
 };

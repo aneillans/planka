@@ -133,6 +133,15 @@ module.exports = {
     isPublic: {
       type: 'boolean',
     },
+    publicShowMembers: {
+      type: 'boolean',
+    },
+    publicShowComments: {
+      type: 'boolean',
+    },
+    publicShowActivity: {
+      type: 'boolean',
+    },
     isSubscribed: {
       type: 'boolean',
     },
@@ -173,6 +182,9 @@ module.exports = {
         'displayCardAges',
         'expandTaskListsByDefault',
         'isPublic',
+        'publicShowMembers',
+        'publicShowComments',
+        'publicShowActivity',
       );
     }
     if (isBoardMember) {
@@ -193,6 +205,9 @@ module.exports = {
       'displayCardAges',
       'expandTaskListsByDefault',
       'isPublic',
+      'publicShowMembers',
+      'publicShowComments',
+      'publicShowActivity',
       'isSubscribed',
     ]);
 

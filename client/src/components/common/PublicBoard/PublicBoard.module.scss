@@ -36,9 +36,19 @@
     padding: 0.4rem 0.8rem;
   }
 
+  // The board content sizes itself against this box, so it needs a definite height rather than
+  // collapsing to fit its cards.
   .content {
-    flex: 1;
-    overflow: auto;
-    padding: 1.5rem;
+    display: flex;
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .message {
+    margin: 2rem auto;
+    max-width: 480px;
   }
 }

@@ -3,70 +3,36 @@
  * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import React, { useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Loader, Message } from 'semantic-ui-react';
 
-import Config from '../../../constants/Config';
-import KanbanBoard from './KanbanBoard';
+import selectors from '../../../selectors';
+import Board from '../../boards/Board';
 
 import styles from './PublicBoard.module.scss';
 
+// Read-only shell around the ordinary board. Everything inside `Board` is the same code the
+// authenticated app runs; it renders read-only because the synthetic public viewer holds a `viewer`
+// board membership, which is what all of the edit affordances gate on.
 const PublicBoard = React.memo(() => {
-  const { publicId } = useParams();
+  const board = useSelector(selectors.selectCurrentBoard);
+  const isNotFound = useSelector(selectors.selectIsPublicBoardNotFound);
 
   const [t] = useTranslation();
 
-  const [data, setData] = useState(null);
-  const [isError, setIsError] = useState(false);
-
-  const fetchBoard = useCallback(async () => {
-    const response = await fetch(
-      `${Config.SERVER_BASE_URL}/api/public-boards/${encodeURIComponent(publicId)}`,
-    );
-
-    if (!response.ok) {
-      throw new Error(response.statusText);
-    }
-
-    return response.json();
-  }, [publicId]);
-
   useEffect(() => {
-    let isCurrent = true;
-
-    setData(null);
-    setIsError(false);
-
-    fetchBoard()
-      .then((nextData) => {
-        if (isCurrent) {
-          setData(nextData);
-        }
-      })
-      .catch(() => {
-        if (isCurrent) {
-          setIsError(true);
-        }
-      });
-
-    return () => {
-      isCurrent = false;
-    };
-  }, [fetchBoard]);
-
-  useEffect(() => {
-    if (data) {
-      document.title = data.item.name;
+    if (board) {
+      document.title = board.name;
     }
-  }, [data]);
+  }, [board]);
 
-  if (isError) {
+  if (isNotFound) {
     return (
       <div className={styles.wrapper}>
-        <Message error>
-          <Message.Header>{t('common.boardNotAvailable', 'Board not available')}</Message.Header>
+        <Message error className={styles.message}>
+          <Message.Header>{t('common.boardNotFound', 'Board not found')}</Message.Header>
           <p>
             {t(
               'common.thisBoardIsEitherPrivateOrDoesNotExist',
@@ -78,7 +44,7 @@ const PublicBoard = React.memo(() => {
     );
   }
 
-  if (!data) {
+  if (!board) {
     return (
       <div className={styles.wrapper}>
         <Loader active size="massive" />
@@ -89,13 +55,11 @@ const PublicBoard = React.memo(() => {
   return (
     <div className={styles.wrapper}>
       <div className={styles.header}>
-        <h1 className={styles.boardName}>{data.item.name}</h1>
-        <div className={styles.badge}>
-          {t('common.readOnlyPublicView', 'Read only - public view')}
-        </div>
+        <h1 className={styles.boardName}>{board.name}</h1>
+        <div className={styles.badge}>{t('common.readOnlyPublicView', 'Read only')}</div>
       </div>
       <div className={styles.content}>
-        <KanbanBoard included={data.included} />
+        <Board />
       </div>
     </div>
   );

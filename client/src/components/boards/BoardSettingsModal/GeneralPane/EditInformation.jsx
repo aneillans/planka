@@ -29,13 +29,25 @@ const EditInformation = React.memo(() => {
     () => ({
       name: board.name,
       isPublic: board.isPublic || false,
+      publicShowMembers: board.publicShowMembers || false,
+      publicShowComments: board.publicShowComments || false,
+      publicShowActivity: board.publicShowActivity || false,
     }),
-    [board.name, board.isPublic],
+    [
+      board.name,
+      board.isPublic,
+      board.publicShowMembers,
+      board.publicShowComments,
+      board.publicShowActivity,
+    ],
   );
 
   const [data, handleFieldChange] = useForm(() => ({
     name: '',
     isPublic: false,
+    publicShowMembers: false,
+    publicShowComments: false,
+    publicShowActivity: false,
     ...defaultData,
   }));
 
@@ -60,13 +72,16 @@ const EditInformation = React.memo(() => {
     dispatch(entryActions.updateBoard(boardId, cleanData));
   }, [boardId, dispatch, cleanData, nameFieldRef]);
 
-  const handlePublicToggle = useCallback(() => {
-    handleFieldChange(null, {
-      type: 'checkbox',
-      name: 'isPublic',
-      checked: !data.isPublic,
-    });
-  }, [data.isPublic, handleFieldChange]);
+  const handleToggleChange = useCallback(
+    (_, { name, checked }) => {
+      handleFieldChange(null, {
+        type: 'checkbox',
+        name,
+        checked,
+      });
+    },
+    [handleFieldChange],
+  );
 
   const publicUrl = useMemo(
     () =>
@@ -99,11 +114,40 @@ const EditInformation = React.memo(() => {
       <div className={styles.field}>
         <Checkbox
           toggle
+          name="isPublic"
           label={t('common.makePublic', 'Make board publicly accessible')}
           checked={data.isPublic}
-          onChange={handlePublicToggle}
+          onChange={handleToggleChange}
         />
       </div>
+      {data.isPublic && (
+        <div className={styles.field}>
+          <div className={styles.text}>
+            {t('common.visibleOnPublicBoard', 'Visible on the public board')}
+          </div>
+          <Checkbox
+            name="publicShowMembers"
+            label={t('common.showMembers', 'Members and card assignees')}
+            checked={data.publicShowMembers}
+            className={styles.subField}
+            onChange={handleToggleChange}
+          />
+          <Checkbox
+            name="publicShowComments"
+            label={t('common.showComments', 'Comments')}
+            checked={data.publicShowComments}
+            className={styles.subField}
+            onChange={handleToggleChange}
+          />
+          <Checkbox
+            name="publicShowActivity"
+            label={t('common.showActivity', 'Activity')}
+            checked={data.publicShowActivity}
+            className={styles.subField}
+            onChange={handleToggleChange}
+          />
+        </div>
+      )}
       {board.isPublic && board.publicId && (
         <Message info className={styles.field}>
           <Message.Header>

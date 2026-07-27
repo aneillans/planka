@@ -163,6 +163,21 @@ module.exports = {
       allowNull: true,
       columnName: 'public_id',
     },
+    publicShowMembers: {
+      type: 'boolean',
+      defaultsTo: false,
+      columnName: 'public_show_members',
+    },
+    publicShowComments: {
+      type: 'boolean',
+      defaultsTo: false,
+      columnName: 'public_show_comments',
+    },
+    publicShowActivity: {
+      type: 'boolean',
+      defaultsTo: false,
+      columnName: 'public_show_activity',
+    },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗

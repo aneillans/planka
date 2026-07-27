@@ -3,6 +3,7 @@
  * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
  */
 
+import http from './http';
 import socket from './socket';
 
 /* Transformers */
@@ -21,6 +22,22 @@ const getComments = (cardId, data, headers) =>
     ...body,
     items: body.items.map(transformComment),
   }));
+
+// Public boards are read over plain HTTP: anonymous visitors have no authenticated socket.
+const getPublicComments = (publicId, cardId, data, headers) => {
+  const query = data && data.beforeId ? `?beforeId=${encodeURIComponent(data.beforeId)}` : '';
+
+  return http
+    .get(
+      `/public-boards/${encodeURIComponent(publicId)}/cards/${cardId}/comments${query}`,
+      undefined,
+      headers,
+    )
+    .then((body) => ({
+      ...body,
+      items: body.items.map(transformComment),
+    }));
+};
 
 const createComment = (cardId, data, headers) =>
   socket.post(`/cards/${cardId}/comments`, data, headers).then((body) => ({
@@ -55,6 +72,7 @@ const makeHandleCommentDelete = makeHandleCommentUpdate;
 
 export default {
   getComments,
+  getPublicComments,
   createComment,
   updateComment,
   deleteComment,

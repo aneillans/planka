@@ -10,7 +10,10 @@
  *     summary: Get public board details
  *     description: |
  *       Retrieves a read-only view of a board that has been shared publicly. Requires no
- *       authentication. Only active lists are returned, and all user-identifying data is omitted.
+ *       authentication. The payload mirrors `GET /boards/{id}` so the same board UI can render it,
+ *       with a synthetic viewer whose board membership role is `viewer`. Optional facets (members,
+ *       comments, activity) are included only when the board opts into them. Attachments are never
+ *       included, since their files are not publicly downloadable.
  *     tags:
  *       - Boards
  *     operationId: getPublicBoard
@@ -48,38 +51,6 @@ const Errors = {
   },
 };
 
-// Only the fields required to render the read-only public view
-const presentBoard = (board) => ({
-  id: board.id,
-  name: board.name,
-  defaultView: board.defaultView,
-  isPublic: board.isPublic,
-});
-
-const presentCard = (card) => ({
-  id: card.id,
-  boardId: card.boardId,
-  listId: card.listId,
-  type: card.type,
-  position: card.position,
-  name: card.name,
-  description: card.description,
-  dueDate: card.dueDate,
-  isDueCompleted: card.isDueCompleted,
-  commentsTotal: card.commentsTotal,
-  createdAt: card.createdAt,
-  updatedAt: card.updatedAt,
-});
-
-const presentList = (list) => ({
-  id: list.id,
-  boardId: list.boardId,
-  type: list.type,
-  position: list.position,
-  name: list.name,
-  color: list.color,
-});
-
 module.exports = {
   inputs: {
     publicId: {
@@ -101,25 +72,39 @@ module.exports = {
       throw Errors.BOARD_NOT_FOUND;
     }
 
-    const labels = await Label.qm.getByBoardId(board.id);
-    const lists = await List.qm.getByBoardId(board.id);
+    const project = await Project.qm.getOneById(board.projectId);
 
-    const activeLists = lists.filter((list) => list.type === List.Types.ACTIVE);
-    const activeListIds = sails.helpers.utils.mapRecords(activeLists);
+    if (!project) {
+      throw Errors.BOARD_NOT_FOUND;
+    }
 
-    const cards = await Card.qm.getByListIds(activeListIds);
-    const cardIds = sails.helpers.utils.mapRecords(cards);
+    const payload = await sails.helpers.boards.buildShowPayload.with({
+      board,
+      project,
+      publicFacets: {
+        members: board.publicShowMembers,
+        comments: board.publicShowComments,
+        activity: board.publicShowActivity,
+      },
+    });
 
-    const cardLabels = await CardLabel.qm.getByCardIds(cardIds);
+    // The client renders the ordinary board tree, which gates every edit affordance on the current
+    // user's board membership. The synthetic viewer is deliberately given *no* membership: absence
+    // makes all of those gates fall closed, so the board is read-only without a parallel set of
+    // components, and member-only affordances (subscribe, join) stay hidden too.
+    const publicUser = {
+      ...User.PUBLIC,
+      name: null,
+      username: null,
+    };
 
     return {
-      item: presentBoard(board),
+      item: board,
       included: {
-        labels,
-        lists: activeLists.map(presentList),
-        cards: cards.map(presentCard),
-        cardLabels,
+        ...payload.included,
+        users: [...payload.included.users, publicUser],
       },
+      publicUserId: User.PUBLIC.id,
     };
   },
 };
