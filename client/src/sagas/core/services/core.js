@@ -12,7 +12,7 @@ import actions from '../../../actions';
 import api from '../../../api';
 import i18n from '../../../i18n';
 import { removeAccessToken } from '../../../utils/access-token-storage';
-import { HomeViews, ProjectOrders } from '../../../constants/Enums';
+import { HomeViews, ProjectOrders, PUBLIC_USER_ID } from '../../../constants/Enums';
 
 export function* initializeCore() {
   const { item: bootstrap } = yield call(request, api.getBootstrap); // TODO: handle error
@@ -133,24 +133,45 @@ export function* logout(revokeAccessToken) {
 }
 
 // Anonymous visitor of a public board. The payload is fed through the very same CORE_INITIALIZE
-// action the authenticated app uses, so the ordinary board tree renders it unchanged. The synthetic
-// viewer arrives from the server with a `viewer` board membership, which is what makes every edit
-// affordance resolve to read-only.
+// action the authenticated app uses, so the ordinary board UI renders it unchanged. The synthetic
+// viewer holds no board membership, which is what makes every edit affordance resolve to read-only.
+//
+// A board that cannot be loaded is initialized with no data at all, so the app's own
+// "board not found" screen is shown rather than a bespoke error page.
+const EMPTY_INCLUDED = {
+  users: [],
+  projects: [],
+  boardMemberships: [],
+  labels: [],
+  lists: [],
+  cards: [],
+  cardMemberships: [],
+  cardLabels: [],
+  taskLists: [],
+  tasks: [],
+  attachments: [],
+  customFieldGroups: [],
+  customFields: [],
+  customFieldValues: [],
+};
+
 export function* initializePublicBoard(publicId) {
-  let response;
+  let board;
+  let included = EMPTY_INCLUDED;
+  let publicUserId = PUBLIC_USER_ID;
 
   try {
     // Deliberately not routed through `request`: there is no access token to attach, and a failure
     // must not trigger the logout flow.
-    response = yield call(api.getPublicBoard, publicId);
+    ({ item: board, included, publicUserId } = yield call(api.getPublicBoard, publicId));
   } catch {
-    yield put(actions.initializeCore.failPublicBoard());
-    return;
+    board = undefined;
+    included = EMPTY_INCLUDED;
+    publicUserId = PUBLIC_USER_ID;
   }
 
-  const { item: board, included, publicUserId } = response;
-
   const publicUser = {
+    id: publicUserId,
     ...included.users.find((user) => user.id === publicUserId),
     enableFavoritesByDefault: false,
     defaultHomeView: HomeViews.GROUPED_PROJECTS,

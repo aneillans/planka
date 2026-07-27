@@ -31,6 +31,7 @@ const Header = React.memo(() => {
   const notificationIds = useSelector(selectors.selectNotificationIdsForCurrentUser);
   const isFavoritesEnabled = useSelector(selectors.selectIsFavoritesEnabled);
   const isEditModeEnabled = useSelector(selectors.selectIsEditModeEnabled);
+  const isPublicView = useSelector(selectors.selectIsPublicView);
 
   const withFavoritesToggler = useSelector(
     // TODO: use selector instead?
@@ -102,13 +103,15 @@ const Header = React.memo(() => {
       <Menu inverted size="large" className={styles.menu}>
         {project && (
           <Menu.Menu position="left">
-            <Menu.Item
-              as={Link}
-              to={Paths.ROOT}
-              className={classNames(styles.item, styles.itemHoverable)}
-            >
-              <Icon fitted name="arrow left" />
-            </Menu.Item>
+            {!isPublicView && (
+              <Menu.Item
+                as={Link}
+                to={Paths.ROOT}
+                className={classNames(styles.item, styles.itemHoverable)}
+              >
+                <Icon fitted name="arrow left" />
+              </Menu.Item>
+            )}
             <Menu.Item className={classNames(styles.item, styles.title)}>
               {project.name}
               {canEditProject && (
@@ -144,20 +147,24 @@ const Header = React.memo(() => {
               />
             </Menu.Item>
           )}
-          <NotificationsPopup>
-            <Menu.Item className={classNames(styles.item, styles.itemHoverable)}>
-              <Icon fitted name="bell" />
-              {notificationIds.length > 0 && (
-                <span className={styles.notification}>{notificationIds.length}</span>
-              )}
-            </Menu.Item>
-          </NotificationsPopup>
-          <UserActionsPopup>
-            <Menu.Item className={classNames(styles.item, styles.itemHoverable)}>
-              <span className={styles.userName}>{user.name}</span>
-              <UserAvatar id={user.id} size="small" />
-            </Menu.Item>
-          </UserActionsPopup>
+          {!isPublicView && (
+            <>
+              <NotificationsPopup>
+                <Menu.Item className={classNames(styles.item, styles.itemHoverable)}>
+                  <Icon fitted name="bell" />
+                  {notificationIds.length > 0 && (
+                    <span className={styles.notification}>{notificationIds.length}</span>
+                  )}
+                </Menu.Item>
+              </NotificationsPopup>
+              <UserActionsPopup>
+                <Menu.Item className={classNames(styles.item, styles.itemHoverable)}>
+                  <span className={styles.userName}>{user.name}</span>
+                  <UserAvatar id={user.id} size="small" />
+                </Menu.Item>
+              </UserActionsPopup>
+            </>
+          )}
         </Menu.Menu>
       </Menu>
     </div>

@@ -18,6 +18,7 @@ import styles from './RightSide.module.scss';
 
 const RightSide = React.memo(() => {
   const board = useSelector(selectors.selectCurrentBoard);
+  const isPublicView = useSelector(selectors.selectIsPublicView);
 
   const dispatch = useDispatch();
 
@@ -53,13 +54,15 @@ const RightSide = React.memo(() => {
           ))}
         </div>
       </div>
-      <div className={styles.action}>
-        <ActionsPopup>
-          <button type="button" className={styles.button}>
-            <Icon fitted name="ellipsis vertical" />
-          </button>
-        </ActionsPopup>
-      </div>
+      {!isPublicView && (
+        <div className={styles.action}>
+          <ActionsPopup>
+            <button type="button" className={styles.button}>
+              <Icon fitted name="ellipsis vertical" />
+            </button>
+          </ActionsPopup>
+        </div>
+      )}
     </>
   );
 });
