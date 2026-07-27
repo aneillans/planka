@@ -7,7 +7,7 @@ on:
       - 'charts/**'
       - 'docker-*.yml'
       - '*.md'
-    branches: [master]
+    branches: [ng]
   workflow_dispatch:
 
 jobs:
