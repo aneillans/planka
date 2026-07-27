@@ -19,13 +19,21 @@ export function* fetchComments(cardId) {
   let comments;
   let users;
 
+  // Anonymous visitors of a public board read through the public endpoint over HTTP, and must not
+  // go through `request`, which attaches a token and logs out on 401.
+  const publicViewPublicId = yield select(selectors.selectPublicViewPublicId);
+
   try {
     ({
       items: comments,
       included: { users },
-    } = yield call(request, api.getComments, cardId, {
-      beforeId: lastCommentId || undefined,
-    }));
+    } = publicViewPublicId
+      ? yield call(api.getPublicComments, publicViewPublicId, cardId, {
+          beforeId: lastCommentId || undefined,
+        })
+      : yield call(request, api.getComments, cardId, {
+          beforeId: lastCommentId || undefined,
+        }));
   } catch (error) {
     yield put(actions.fetchComments.failure(cardId, error));
     return;

@@ -10,7 +10,7 @@ import { selectPath } from './router';
 import { selectCurrentUserId } from './users';
 import { isLocalId } from '../utils/local-id';
 import { isListArchiveOrTrash } from '../utils/record-helpers';
-import { ListTypes } from '../constants/Enums';
+import { ListTypes, PUBLIC_USER_ID } from '../constants/Enums';
 
 export const makeSelectBoardById = () =>
   createSelector(
@@ -177,6 +177,23 @@ export const selectMemberUserIdsForCurrentBoard = createSelector(
       .getMembershipsQuerySet()
       .toModelArray()
       .map((boardMembershipModel) => boardMembershipModel.user.id);
+  },
+);
+
+// Non-null only while an anonymous visitor is viewing a public board, in which case it carries the
+// board's public id so navigation can stay inside the public routes.
+export const selectPublicViewPublicId = createSelector(
+  orm,
+  (state) => selectPath(state).boardId,
+  (state) => selectCurrentUserId(state),
+  ({ Board }, boardId, currentUserId) => {
+    if (currentUserId !== PUBLIC_USER_ID || !boardId) {
+      return null;
+    }
+
+    const boardModel = Board.withId(boardId);
+
+    return boardModel ? boardModel.publicId : null;
   },
 );
 
@@ -479,6 +496,7 @@ export default {
   selectMembershipsForCurrentBoard,
   selectMemberUserIdsForCurrentBoard,
   selectCurrentUserMembershipForCurrentBoard,
+  selectPublicViewPublicId,
   selectLabelsForCurrentBoard,
   selectArchiveListIdForCurrentBoard,
   selectTrashListIdForCurrentBoard,

@@ -58,6 +58,42 @@ export const selectPath = createReduxOrmSelector(
             projectId: boardModel.projectId,
           };
         }
+        case Paths.PUBLIC_BOARDS: {
+          // Public boards are addressed by their public id, so resolve the board that the fetched
+          // payload put into the store rather than looking it up by primary key.
+          const boardModel = Board.all()
+            .toModelArray()
+            .find((model) => model.publicId === pathsMatch.params.publicId);
+
+          if (!boardModel) {
+            return {
+              boardId: null,
+              projectId: null,
+            };
+          }
+
+          return {
+            boardId: boardModel.id,
+            projectId: boardModel.projectId,
+          };
+        }
+        case Paths.PUBLIC_CARDS: {
+          const cardModel = Card.withId(pathsMatch.params.cardId);
+
+          if (!cardModel) {
+            return {
+              cardId: null,
+              boardId: null,
+              projectId: null,
+            };
+          }
+
+          return {
+            cardId: cardModel.id,
+            boardId: cardModel.boardId,
+            projectId: cardModel.board.projectId,
+          };
+        }
         case Paths.CARDS: {
           const cardModel = Card.withId(pathsMatch.params.id);
 

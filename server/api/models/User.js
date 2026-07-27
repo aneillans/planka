@@ -261,6 +261,13 @@ const OIDC = {
   role: Roles.ADMIN,
 };
 
+// Synthetic viewer handed to anonymous visitors of a public board. Never persisted, and never
+// granted anything beyond a `viewer` board membership.
+const PUBLIC = {
+  id: '_public',
+  role: Roles.BOARD_USER,
+};
+
 module.exports = {
   Roles,
   EditorModes,
@@ -271,6 +278,7 @@ module.exports = {
   PERSONAL_FIELD_NAMES,
   INTERNAL,
   OIDC,
+  PUBLIC,
 
   attributes: {
     //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗

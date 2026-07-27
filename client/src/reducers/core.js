@@ -26,6 +26,7 @@ const initialState = {
   projectsSearch: '',
   projectsOrder: ProjectOrders.BY_DEFAULT,
   isHiddenProjectsVisible: false, // TODO: refactor?
+  isPublicBoardNotFound: false,
 };
 
 // eslint-disable-next-line default-param-last
@@ -97,6 +98,11 @@ export default (state = initialState, { type, payload }) => {
 
       return nextState;
     }
+    case ActionTypes.CORE_INITIALIZE__PUBLIC_BOARD_FAIL:
+      return {
+        ...state,
+        isPublicBoardNotFound: true,
+      };
     case ActionTypes.FAVORITES_TOGGLE:
       return {
         ...state,

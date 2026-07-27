@@ -88,6 +88,40 @@ const serveStatic = async (prefix, getPathSegment, req, res) => {
   return serveStatic(prefix, getPathSegment, req, res);
 }; */
 
+// Serves member avatars for a public board without authentication. Scoped to a single board's
+// publicId and restricted to that board's exposed users, so it cannot be used to enumerate the
+// avatars of arbitrary users.
+const publicUserAvatarServer = () => async (req, res, next) => {
+  const { publicId } = req.params;
+
+  if (!publicId) {
+    return next();
+  }
+
+  const board = await Board.qm.getOneByPublicId(publicId);
+
+  if (!board || !board.isPublic) {
+    return res.sendStatus(404);
+  }
+
+  // Self-gating on the board's visibility flags; empty when nothing exposes users.
+  const userIds = await sails.helpers.boards.getPublicUserIds(board);
+  const users = await User.qm.getByIds(userIds);
+
+  const allowedUploadedFileIds = new Set(
+    users.filter((user) => user.avatar).map((user) => String(user.avatar.uploadedFileId)),
+  );
+
+  const prefix = `/public-boards/${publicId}/user-avatars`;
+  const [requestedUploadedFileId] = removeRoutePrefix(prefix, req.url).split('/').filter(Boolean);
+
+  if (!requestedUploadedFileId || !allowedUploadedFileIds.has(requestedUploadedFileId)) {
+    return res.sendStatus(404);
+  }
+
+  return serveStatic(prefix, () => sails.config.custom.userAvatarsPathSegment, req, res);
+};
+
 const protectedStaticDirServer = (prefix, getPathSegment) => (req, res, next) => {
   if (!req.url.startsWith(prefix)) {
     return next();
@@ -152,6 +186,10 @@ module.exports.routes = {
 
   'POST /api/projects/:projectId/boards': 'boards/create',
   'GET /api/boards/:id': 'boards/show',
+  'GET /api/public-boards/:publicId': 'boards/show-public',
+  'GET /api/public-boards/:publicId/actions': 'actions/index-in-board-public',
+  'GET /api/public-boards/:publicId/cards/:cardId/comments': 'comments/index-public',
+  'GET /api/public-boards/:publicId/cards/:cardId/actions': 'actions/index-in-card-public',
   'PATCH /api/boards/:id': 'boards/update',
   'DELETE /api/boards/:id': 'boards/delete',
 
@@ -244,6 +282,11 @@ module.exports.routes = {
 
   'GET /user-avatars/*': {
     fn: protectedStaticDirServer('/user-avatars', () => sails.config.custom.userAvatarsPathSegment),
+    skipAssets: false,
+  },
+
+  'GET /public-boards/:publicId/user-avatars/*': {
+    fn: publicUserAvatarServer(),
     skipAssets: false,
   },
 

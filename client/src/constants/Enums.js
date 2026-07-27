@@ -59,6 +59,9 @@ export const BoardContexts = {
   TRASH: 'trash',
 };
 
+// Synthetic viewer used for anonymous access to a public board; mirrors User.PUBLIC on the server.
+export const PUBLIC_USER_ID = '_public';
+
 export const BoardMembershipRoles = {
   EDITOR: 'editor',
   VIEWER: 'viewer',

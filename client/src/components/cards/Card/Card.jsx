@@ -29,6 +29,7 @@ const Card = React.memo(({ id, isInline }) => {
   const selectIsCardWithIdRecent = useMemo(() => selectors.makeSelectIsCardWithIdRecent(), []);
 
   const card = useSelector((state) => selectCardById(state, id));
+  const publicViewPublicId = useSelector(selectors.selectPublicViewPublicId);
 
   const isHighlightedAsRecent = useSelector((state) => {
     const { turnOffRecentCardHighlighting } = selectors.selectCurrentUser(state);
@@ -67,8 +68,15 @@ const Card = React.memo(({ id, isInline }) => {
       document.activeElement.blur();
     }
 
-    dispatch(push(Paths.CARDS.replace(':id', id)));
-  }, [id, dispatch]);
+    // Anonymous visitors must stay within the public routes, which carry no access token.
+    dispatch(
+      push(
+        publicViewPublicId
+          ? Paths.PUBLIC_CARDS.replace(':publicId', publicViewPublicId).replace(':cardId', id)
+          : Paths.CARDS.replace(':id', id),
+      ),
+    );
+  }, [id, publicViewPublicId, dispatch]);
 
   const handleMouseEnter = useCallback(() => {
     handleCardMouseEnter(

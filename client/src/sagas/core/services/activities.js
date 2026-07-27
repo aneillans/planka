@@ -18,13 +18,19 @@ export function* fetchActivitiesInBoard(boardId) {
   let activities;
   let users;
 
+  const publicViewPublicId = yield select(selectors.selectPublicViewPublicId);
+
   try {
     ({
       items: activities,
       included: { users },
-    } = yield call(request, api.getBoardActivities, boardId, {
-      beforeId: lastActivityId || undefined,
-    }));
+    } = publicViewPublicId
+      ? yield call(api.getPublicBoardActivities, publicViewPublicId, {
+          beforeId: lastActivityId || undefined,
+        })
+      : yield call(request, api.getBoardActivities, boardId, {
+          beforeId: lastActivityId || undefined,
+        }));
   } catch (error) {
     yield put(actions.fetchActivitiesInBoard.failure(boardId, error));
     return;
@@ -47,13 +53,19 @@ export function* fetchActivitiesInCard(cardId) {
   let activities;
   let users;
 
+  const publicViewPublicId = yield select(selectors.selectPublicViewPublicId);
+
   try {
     ({
       items: activities,
       included: { users },
-    } = yield call(request, api.getCardActivities, cardId, {
-      beforeId: lastActivityId || undefined,
-    }));
+    } = publicViewPublicId
+      ? yield call(api.getPublicCardActivities, publicViewPublicId, cardId, {
+          beforeId: lastActivityId || undefined,
+        })
+      : yield call(request, api.getCardActivities, cardId, {
+          beforeId: lastActivityId || undefined,
+        }));
   } catch (error) {
     yield put(actions.fetchActivitiesInCard.failure(cardId, error));
     return;
